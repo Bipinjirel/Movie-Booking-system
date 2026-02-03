@@ -79,7 +79,7 @@ function ChoicePage() {
 
 export default function App() {
   const location = useLocation();
-  // ✅ Hide Navbar on choice/login/register pages
+  // ✅ Hide Navbar/Footer on choice/login/register pages
   const hideNavbar = ["/", "/login", "/register"].includes(location.pathname);
 
   return (
