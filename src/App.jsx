@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Routes, Route, useLocation, Link } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext.js";
 import { BookingProvider } from "./context/BookingContext.js";
@@ -18,8 +19,8 @@ import Users from "./pages/Users.jsx";
 
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import AdminRoute from "./components/AdminRoute.jsx";
+import { seedFirestore } from "./seed/seedData.js";
 
-// ✅ Choice screen like Blog Reader
 function ChoicePage() {
   return (
     <div
@@ -79,8 +80,12 @@ function ChoicePage() {
 
 export default function App() {
   const location = useLocation();
-  // ✅ Hide Navbar/Footer on choice/login/register pages
   const hideNavbar = ["/", "/login", "/register"].includes(location.pathname);
+
+  // ✅ Run seeding once when App mounts
+  useEffect(() => {
+    seedFirestore();
+  }, []);
 
   return (
     <ThemeProvider>
@@ -89,21 +94,16 @@ export default function App() {
           {!hideNavbar && <Navbar />}
           <div className="min-h-screen">
             <Routes>
-              {/* ✅ Choice screen at root */}
               <Route path="/" element={<ChoicePage />} />
-
-              {/* Public routes */}
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
 
-              {/* Protected routes */}
               <Route path="/home" element={<ProtectedRoute><Home /></ProtectedRoute>} />
               <Route path="/movies" element={<ProtectedRoute><Movies /></ProtectedRoute>} />
               <Route path="/movies/:id" element={<ProtectedRoute><MovieDetails /></ProtectedRoute>} />
               <Route path="/confirmation" element={<ProtectedRoute><Confirmation /></ProtectedRoute>} />
               <Route path="/my-bookings" element={<ProtectedRoute><MyBookings /></ProtectedRoute>} />
 
-              {/* Admin routes */}
               <Route path="/admin" element={<AdminRoute><Admin /></AdminRoute>} />
               <Route path="/admin/dashboard" element={<AdminRoute><MovieDashboard /></AdminRoute>} />
               <Route path="/admin/users" element={<AdminRoute><Users /></AdminRoute>} />
