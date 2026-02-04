@@ -1,23 +1,31 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 
 export default function Home() {
-  // Example posters (replace with real API images later)
-  const movies = [
-    { id: 1, title: "Movie 1", poster: "https://via.placeholder.com/300x400?text=Movie+1" },
-    { id: 2, title: "Movie 2", poster: "https://via.placeholder.com/300x400?text=Movie+2" },
-    { id: 3, title: "Movie 3", poster: "https://via.placeholder.com/300x400?text=Movie+3" },
-    { id: 4, title: "Movie 4", poster: "https://via.placeholder.com/300x400?text=Movie+4" },
-  ];
+  const [movies, setMovies] = useState([]);
+  const [startIndex, setStartIndex] = useState(0);
+  const visibleCount = 4;
 
-  const [index, setIndex] = useState(0);
+  // ✅ Fetch movies from TMDb API
+  useEffect(() => {
+    fetch("https://api.themoviedb.org/3/discover/movie?api_key=80d491707d8cf7b38aa19c7ccab0952f")
+      .then((res) => res.json())
+      .then((data) => {
+        setMovies(data.results); // TMDb returns results array
+      })
+      .catch((err) => console.error("Error fetching movies:", err));
+  }, []);
 
-  const nextMovie = () => {
-    setIndex((prev) => (prev + 1) % movies.length);
+  const nextSlide = () => {
+    if (startIndex + visibleCount < movies.length) {
+      setStartIndex(startIndex + 1);
+    }
   };
 
-  const prevMovie = () => {
-    setIndex((prev) => (prev - 1 + movies.length) % movies.length);
+  const prevSlide = () => {
+    if (startIndex > 0) {
+      setStartIndex(startIndex - 1);
+    }
   };
 
   return (
@@ -26,45 +34,40 @@ export default function Home() {
       <p className="text-lg mb-6">Browse movies, select seats, and book your tickets easily!</p>
 
       <div className="flex gap-4 mb-8">
-        <Link
-          to="/movies"
-          className="bg-yellow-400 text-black px-6 py-3 rounded-lg font-semibold hover:bg-yellow-500"
-        >
+        <Link to="/movies" className="bg-yellow-400 text-black px-6 py-3 rounded-lg font-semibold hover:bg-yellow-500">
           Book Now
         </Link>
-        <Link
-          to="/locations"
-          className="bg-green-400 text-black px-6 py-3 rounded-lg font-semibold hover:bg-green-500"
-        >
+        <Link to="/locations" className="bg-green-400 text-black px-6 py-3 rounded-lg font-semibold hover:bg-green-500">
           See Locations
         </Link>
       </div>
 
-      {/* ✅ Big Poster Slider */}
+      {/* ✅ Popular Movies Slider */}
       <h2 className="text-2xl font-semibold mb-4">Popular Movies</h2>
       <div className="flex items-center gap-6">
-        {/* Left Arrow */}
         <button
-          onClick={prevMovie}
-          className="bg-white text-black px-4 py-2 rounded-full hover:bg-gray-200 text-2xl"
+          onClick={prevSlide}
+          className="bg-blue-500 text-white w-12 h-12 flex items-center justify-center rounded-full hover:bg-blue-600 text-2xl shadow-lg"
         >
           ◀
         </button>
 
-        {/* Poster */}
-        <div className="bg-white rounded shadow-lg p-4">
-          <img
-            src={movies[index].poster}
-            alt={movies[index].title}
-            className="w-72 h-96 object-cover rounded"
-          />
-          <h3 className="text-black font-semibold mt-2">{movies[index].title}</h3>
+        <div className="flex gap-4">
+          {movies.slice(startIndex, startIndex + visibleCount).map((movie) => (
+            <div key={movie.id} className="bg-white text-black rounded shadow-lg p-2 w-48">
+              <img
+                src={`https://image.tmdb.org/t/p/w300${movie.poster_path}`}
+                alt={movie.title}
+                className="w-full h-64 object-cover rounded"
+              />
+              <h3 className="mt-2 font-semibold text-center">{movie.title}</h3>
+            </div>
+          ))}
         </div>
 
-        {/* Right Arrow */}
         <button
-          onClick={nextMovie}
-          className="bg-white text-black px-4 py-2 rounded-full hover:bg-gray-200 text-2xl"
+          onClick={nextSlide}
+          className="bg-blue-500 text-white w-12 h-12 flex items-center justify-center rounded-full hover:bg-blue-600 text-2xl shadow-lg"
         >
           ▶
         </button>
