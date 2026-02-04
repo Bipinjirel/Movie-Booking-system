@@ -6,13 +6,13 @@ import { getStorage } from "firebase/storage";
 
 // Your Firebase config
 const firebaseConfig = {
-  apiKey: "AIzaSyAbhG-Dddlb5QjN4952_zIf5_E2kb9HrFY",
-  authDomain: "movie-booking-system-7260b.firebaseapp.com",
-  projectId: "movie-booking-system-7260b",
-  storageBucket: "movie-booking-system-7260b.appspot.com", // ✅ fixed: should end with .appspot.com
-  messagingSenderId: "801912169357",
-  appId: "1:801912169357:web:6995557c4eb77ddc2193c4",
-  measurementId: "G-D9ZV6K0Y6L"
+  apiKey: import.meta.env.FIREBASE_API_KEY ,
+  authDomain: import.meta.env.FIREBASE_AUTH_DOMAIN ,
+  projectId: import.meta.env.FIREBASE_PROJECT_ID ,
+  storageBucket: import.meta.env.FIREBASE_STORAGE_BUCKET , 
+  messagingSenderId: import.meta.env.FIREBASE_MESSAGING_SENDER_ID ,
+  appId: import.meta.env.FIREBASE_APP_ID ,
+  measurementId: import.meta.env.FIREBASE_MEASUREMENT_ID
 };
 
 // Initialize Firebase
