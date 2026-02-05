@@ -37,39 +37,50 @@ export default function MovieDetails() {
 
   return (
     <div className="p-8 bg-gray-100 min-h-screen">
-      <h2 className="text-3xl font-bold mb-4">{movie.title}</h2>
-      <div className="shadow-2xl rounded-lg overflow-hidden mb-6 max-w-md">
-        <img
-          src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
-          alt={movie.title}
-          className="w-full h-auto object-contain"
-        />
+      <h2 className="text-3xl font-bold mb-6">{movie.title}</h2>
+
+      {/* Flexbox layout: poster left, seat map right */}
+      <div className="flex flex-col md:flex-row gap-8">
+        {/* Poster + details */}
+        <div className="md:w-1/2">
+          <div className="shadow-2xl rounded-lg overflow-hidden mb-6">
+            <img
+              src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
+              alt={movie.title}
+              className="w-full h-auto object-contain"
+            />
+          </div>
+          <p className="mb-6">{movie.overview}</p>
+          <p className="text-sm text-gray-600 mb-2">Rating: {movie.vote_average}</p>
+          <p className="text-sm text-gray-600 mb-2">Release Date: {movie.release_date}</p>
+
+          {movie.videos?.results?.length > 0 && (
+            <iframe
+              width="100%"
+              height="315"
+              src={`https://www.youtube.com/embed/${movie.videos.results[0].key}`}
+              title="Trailer"
+              frameBorder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+              className="mt-6 rounded-lg shadow-xl"
+            ></iframe>
+          )}
+        </div>
+
+        {/* Seat selection beside poster */}
+        <div className="md:w-1/2">
+          <h3 className="text-xl font-semibold mb-4">Select Your Seats</h3>
+          <SeatMap selectedSeats={selectedSeats} setSelectedSeats={setSelectedSeats} />
+
+          <button
+            onClick={handleConfirm}
+            className="mt-6 bg-orange-500 text-white px-6 py-2 rounded hover:bg-orange-600 w-full"
+          >
+            Confirm Booking
+          </button>
+        </div>
       </div>
-      <p className="mb-6">{movie.overview}</p>
-      <p className="text-sm text-gray-600 mb-2">Rating: {movie.vote_average}</p>
-      <p className="text-sm text-gray-600 mb-2">Release Date: {movie.release_date}</p>
-
-      {movie.videos?.results?.length > 0 && (
-        <iframe
-          width="560"
-          height="315"
-          src={`https://www.youtube.com/embed/${movie.videos.results[0].key}`}
-          title="Trailer"
-          frameBorder="0"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          allowFullScreen
-          className="mt-6 rounded-lg shadow-xl"
-        ></iframe>
-      )}
-
-      <SeatMap selectedSeats={selectedSeats} setSelectedSeats={setSelectedSeats} />
-
-      <button
-        onClick={handleConfirm}
-        className="mt-6 bg-orange-500 text-white px-6 py-2 rounded hover:bg-orange-600"
-      >
-        Confirm Booking
-      </button>
     </div>
   );
 }

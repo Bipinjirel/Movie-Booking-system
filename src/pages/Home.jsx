@@ -46,18 +46,22 @@ export default function Home() {
           {movies.map((movie) => (
             <div
               key={movie.id}
-              className="bg-gray-100 rounded-lg shadow-md overflow-hidden"
+              className="bg-gray-100 rounded-lg shadow-md overflow-hidden flex flex-col"
             >
-              <img
-                src={`https://image.tmdb.org/t/p/w300${movie.poster_path}`}
-                alt={movie.title}
-                className="w-full h-64 object-cover"
-              />
-              <div className="p-4">
-                <h3 className="text-lg font-bold text-center">{movie.title}</h3>
-                <p className="text-sm text-gray-700 text-center">
-                  Rating: {movie.vote_average}
-                </p>
+              <div className="w-full h-80 bg-black flex items-center justify-center">
+                <img
+                  src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
+                  alt={movie.title}
+                  className="max-h-full object-contain"
+                />
+              </div>
+              <div className="p-4 flex-1 flex flex-col justify-between">
+                <div>
+                  <h3 className="text-lg font-bold text-center">{movie.title}</h3>
+                  <p className="text-sm text-gray-700 text-center">
+                    Rating: {movie.vote_average}
+                  </p>
+                </div>
                 <Link
                   to={`/movies/${movie.id}`}
                   className="mt-3 inline-block bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 w-full text-center"
