@@ -74,8 +74,15 @@ export default function MovieDetails() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-800 flex items-center justify-center">
-        <div className="text-center">
+      <div 
+        className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center relative overflow-hidden"
+        style={{
+          backgroundImage: `linear-gradient(to bottom, rgba(15,23,42,0.7), rgba(15,23,42,1)), url('https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=1920')`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center'
+        }}
+      >
+        <div className="text-center relative z-10">
           <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-yellow-400 mx-auto mb-4"></div>
           <p className="text-white text-xl">Loading movie details...</p>
         </div>
@@ -85,12 +92,19 @@ export default function MovieDetails() {
 
   if (!movie) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-800 flex items-center justify-center">
-        <div className="text-white text-center">
-          <h2 className="text-2xl font-bold mb-4">Movie not found</h2>
+      <div 
+        className="min-h-screen flex items-center justify-center relative overflow-hidden"
+        style={{
+          backgroundImage: `linear-gradient(to bottom, rgba(15,23,42,0.8), rgba(15,23,42,1)), url('https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=1920')`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center'
+        }}
+      >
+        <div className="text-center relative z-10">
+          <h2 className="text-2xl font-bold text-white mb-4">Movie not found</h2>
           <button 
             onClick={() => navigate("/movies")}
-            className="bg-yellow-400 text-black px-6 py-2 rounded-lg font-semibold"
+            className="bg-yellow-400 text-black px-6 py-2 rounded-lg font-semibold hover:bg-yellow-500 transition-colors"
           >
             Back to Movies
           </button>
@@ -103,7 +117,7 @@ export default function MovieDetails() {
   const backdropUrl = getBackdropUrl(movie.backdrop_path);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-800">
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
       {/* Backdrop Header */}
       {backdropUrl && (
         <div 
@@ -121,7 +135,7 @@ export default function MovieDetails() {
             Back
           </button>
 
-          {/* Trailer Button */}
+          {/* Play Button - Opens Trailer Modal */}
           {movie.trailer_key && (
             <button
               onClick={() => setShowTrailer(true)}
@@ -192,27 +206,6 @@ export default function MovieDetails() {
             <p className="text-gray-300 text-lg mb-8 leading-relaxed">
               {movie.synopsis}
             </p>
-
-            {/* Trailer Section */}
-            {movie.trailer_key && (
-              <div className="mb-8">
-                <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-                  <Play size={20} className="text-yellow-400" />
-                  Watch Trailer
-                </h3>
-                <div className="relative aspect-video rounded-xl overflow-hidden bg-black">
-                  <iframe
-                    width="100%"
-                    height="100%"
-                    src={`https://www.youtube.com/embed/${movie.trailer_key}?autoplay=1`}
-                    title={`${movie.title} Trailer`}
-                    frameBorder="0"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                  />
-                </div>
-              </div>
-            )}
 
             {/* Seat selection */}
             <h3 className="text-2xl font-bold text-white mb-4">Select Your Seats</h3>

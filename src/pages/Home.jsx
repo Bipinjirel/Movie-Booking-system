@@ -3,8 +3,10 @@ import { Link } from "react-router-dom";
 import { ChevronLeft, ChevronRight, Star, Calendar, Clock, Play } from "lucide-react";
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "../config/Firebase";
+import { useAuthContext } from "../context/AuthContext";
 
 export default function Home() {
+  const { user } = useAuthContext();
   const [movies, setMovies] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
@@ -54,7 +56,7 @@ export default function Home() {
 
   if (movies.length === 0) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-800 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-yellow-400 mx-auto mb-4"></div>
           <p className="text-white text-xl">Loading Movies...</p>
@@ -64,9 +66,34 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-800">
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
+      {/* User Welcome Banner */}
+      {user && (
+        <div className="bg-gradient-to-r from-slate-800/80 to-slate-900/80 backdrop-blur-sm border-b border-white/10 py-3">
+          <div className="max-w-7xl mx-auto px-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <span className="text-gray-400 text-sm">Welcome back,</span>
+              <span className="text-white font-semibold">{user.displayName || user.email?.split('@')[0]}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              {user.photoURL ? (
+                <img src={user.photoURL} alt="Profile" className="w-8 h-8 rounded-full border-2 border-yellow-400" />
+              ) : (
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center font-bold text-slate-900">
+                  {(user.displayName || user.email || "U").charAt(0).toUpperCase()}
+                </div>
+              )}
+              <span className="text-yellow-400 text-sm font-medium">{user.email?.split('@')[0]}</span>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Hero Section with Slider */}
       <section className="relative h-[85vh] w-full overflow-hidden">
+        {/* Background fallback gradient */}
+        <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-950" />
+        
         {/* Dark Overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/50 to-transparent z-10" />
         
@@ -78,9 +105,11 @@ export default function Home() {
               index === currentIndex ? "opacity-100 scale-100" : "opacity-0 scale-105"
             }`}
             style={{
-              backgroundImage: `url(${getImageUrl(movie.backdrop_path || movie.poster_path)})`,
+              backgroundImage: `url(${getImageUrl(movie.backdrop_path || movie.poster_path)}),
+                linear-gradient(to bottom, rgba(15,23,42,0.3), rgba(15,23,42,1))`,
               backgroundSize: "cover",
               backgroundPosition: "center",
+              backgroundBlendMode: "overlay"
             }}
           />
         ))}
