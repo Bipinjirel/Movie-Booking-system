@@ -3,10 +3,8 @@ import { Link } from "react-router-dom";
 
 export default function Home() {
   const [movies, setMovies] = useState([]);
-  const [startIndex, setStartIndex] = useState(0);
-  const visibleCount = 4;
 
-  // ✅ Fetch movies from TMDb API
+  // ✅ Fetch movies from TMDb Discover API
   useEffect(() => {
     fetch("https://api.themoviedb.org/3/discover/movie?api_key=80d491707d8cf7b38aa19c7ccab0952f")
       .then((res) => res.json())
@@ -16,64 +14,65 @@ export default function Home() {
       .catch((err) => console.error("Error fetching movies:", err));
   }, []);
 
-  const nextSlide = () => {
-    if (startIndex + visibleCount < movies.length) {
-      setStartIndex(startIndex + 1);
-    }
-  };
-
-  const prevSlide = () => {
-    if (startIndex > 0) {
-      setStartIndex(startIndex - 1);
-    }
-  };
-
   return (
-    <div className="min-h-screen flex flex-col items-center bg-gradient-to-r from-purple-600 to-orange-500 text-white text-center p-8">
-      <h1 className="text-4xl font-bold mb-4">Welcome to Movie Booking</h1>
-      <p className="text-lg mb-6">Browse movies, select seats, and book your tickets easily!</p>
+    <div className="min-h-screen flex flex-col bg-gradient-to-r from-purple-600 to-orange-500 text-white">
+      {/* ✅ Poster Banner */}
+      <div className="flex flex-col items-center justify-center text-center py-20 px-6">
+        <h1 className="text-5xl font-extrabold mb-4">Welcome to Movie Booking 🎬</h1>
+        <p className="text-lg mb-8 max-w-2xl">
+          Browse movies, select seats, and book your tickets easily!
+        </p>
 
-      <div className="flex gap-4 mb-8">
-        <Link to="/movies" className="bg-yellow-400 text-black px-6 py-3 rounded-lg font-semibold hover:bg-yellow-500">
-          Book Now
-        </Link>
-        <Link to="/locations" className="bg-green-400 text-black px-6 py-3 rounded-lg font-semibold hover:bg-green-500">
-          See Locations
-        </Link>
+        <div className="flex gap-6">
+          <Link
+            to="/movies"
+            className="bg-yellow-400 text-black px-8 py-3 rounded-lg font-semibold hover:bg-yellow-500 shadow-lg"
+          >
+            Book Now
+          </Link>
+          <Link
+            to="/locations"
+            className="bg-green-400 text-black px-8 py-3 rounded-lg font-semibold hover:bg-green-500 shadow-lg"
+          >
+            See Locations
+          </Link>
+        </div>
       </div>
 
-      {/* ✅ Popular Movies Slider */}
-      <h2 className="text-2xl font-semibold mb-4">Popular Movies</h2>
-      <div className="flex items-center gap-6">
-        <button
-          onClick={prevSlide}
-          className="bg-blue-500 text-white w-12 h-12 flex items-center justify-center rounded-full hover:bg-blue-600 text-2xl shadow-lg"
-        >
-          ◀
-        </button>
-
-        <div className="flex gap-4">
-          {movies.slice(startIndex, startIndex + visibleCount).map((movie) => (
-            <div key={movie.id} className="bg-white text-black rounded shadow-lg p-2 w-48">
+      {/* ✅ Movies List Section */}
+      <div className="bg-white text-black rounded-t-3xl p-8">
+        <h2 className="text-2xl font-bold mb-6 text-center">Popular Movies</h2>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+          {movies.map((movie) => (
+            <div
+              key={movie.id}
+              className="bg-gray-100 rounded-lg shadow-md overflow-hidden"
+            >
               <img
                 src={`https://image.tmdb.org/t/p/w300${movie.poster_path}`}
                 alt={movie.title}
-                className="w-full h-64 object-cover rounded"
+                className="w-full h-64 object-cover"
               />
-              <h3 className="mt-2 font-semibold text-center">{movie.title}</h3>
+              <div className="p-4">
+                <h3 className="text-lg font-bold text-center">{movie.title}</h3>
+                <p className="text-sm text-gray-700 text-center">
+                  Rating: {movie.vote_average}
+                </p>
+                <Link
+                  to={`/movies/${movie.id}`}
+                  className="mt-3 inline-block bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 w-full text-center"
+                >
+                  View Details
+                </Link>
+              </div>
             </div>
           ))}
         </div>
-
-        <button
-          onClick={nextSlide}
-          className="bg-blue-500 text-white w-12 h-12 flex items-center justify-center rounded-full hover:bg-blue-600 text-2xl shadow-lg"
-        >
-          ▶
-        </button>
       </div>
 
-      <footer className="mt-12 text-sm text-gray-200">© 2026 Movie Booking</footer>
+      <footer className="mt-12 text-sm text-gray-200 text-center">
+        © 2026 Movie Booking
+      </footer>
     </div>
   );
 }

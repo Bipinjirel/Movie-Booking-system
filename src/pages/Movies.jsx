@@ -8,22 +8,21 @@ export default function Movies() {
   useEffect(() => {
     const fetchMovies = async () => {
       try {
-        // Example using TMDb API (replace with your own key)
         const res = await axios.get(
-          `https://api.themoviedb.org/3/movie/popular?api_key=YOUR_TMDB_API_KEY`
+          "https://api.themoviedb.org/3/discover/movie?api_key=80d491707d8cf7b38aa19c7ccab0952f"
         );
         setMovies(res.data.results);
       } catch (error) {
-        console.error(error);
+        console.error("Error fetching movies:", error);
       }
     };
     fetchMovies();
   }, []);
 
   return (
-    <div className="p-8">
-      <h2 className="text-2xl font-bold mb-6">Popular Movies</h2>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+    <div className="bg-gray-100 p-8 min-h-screen">
+      <h2 className="text-2xl font-bold mb-6 text-center">Popular Movies</h2>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
         {movies.map((movie) => (
           <MovieCard key={movie.id} movie={movie} />
         ))}
