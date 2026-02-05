@@ -10,23 +10,41 @@ export default function Navbar() {
   const handleLogout = async () => {
     try {
       await signOut(auth);
-      navigate("/login"); // ✅ redirect to login after logout
+      navigate("/login");
     } catch (error) {
       console.error("Logout failed:", error.message);
     }
   };
 
   return (
-    <nav className="bg-gradient-to-r from-purple-700 to-orange-600 text-white px-6 py-4 flex justify-between items-center">
+    <nav className="bg-gradient-to-r from-purple-800 via-purple-700 to-orange-500 text-white px-6 py-4 flex justify-between items-center shadow-lg">
       {/* Left side: App title */}
-      <h1 className="text-xl font-bold text-yellow-300">Movie Booking</h1>
+      <div className="flex items-center gap-2">
+        <span className="text-2xl">🎬</span>
+        <h1 className="text-xl font-bold text-yellow-300 hover:text-yellow-400 transition-colors">
+          Movie Booking
+        </h1>
+      </div>
 
       {/* Center: Navigation links */}
-      <div className="flex gap-6 justify-center flex-1">
-        <Link to="/home" className="hover:text-yellow-300">Home</Link>
-        <Link to="/movies" className="hover:text-yellow-300">Movies</Link>
+      <div className="flex gap-8 justify-center flex-1">
+        <Link 
+          to="/home" 
+          className="hover:text-yellow-300 transition-colors font-medium"
+        >
+          Home
+        </Link>
+        <Link 
+          to="/movies" 
+          className="hover:text-yellow-300 transition-colors font-medium"
+        >
+          Movies
+        </Link>
         {user && (
-          <Link to="/my-bookings" className="hover:text-yellow-300">
+          <Link 
+            to="/my-bookings" 
+            className="hover:text-yellow-300 transition-colors font-medium"
+          >
             My Bookings
           </Link>
         )}
@@ -34,23 +52,31 @@ export default function Navbar() {
 
       {/* Right side: Avatar + Logout */}
       {user && (
-        <div className="flex items-center gap-3">
-          {user.photoURL ? (
-            <img
-              src={user.photoURL}
-              alt="Profile"
-              className="w-8 h-8 rounded-full border-2 border-yellow-300"
-            />
-          ) : (
-            <div className="w-8 h-8 rounded-full bg-yellow-300 text-purple-700 flex items-center justify-center font-bold">
-              {user.displayName ? user.displayName.charAt(0).toUpperCase() : "U"}
-            </div>
-          )}
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 bg-purple-900/50 px-3 py-1 rounded-full">
+            {user.photoURL ? (
+              <img
+                src={user.photoURL}
+                alt="Profile"
+                className="w-8 h-8 rounded-full border-2 border-yellow-300"
+              />
+            ) : (
+              <div className="w-8 h-8 rounded-full bg-yellow-300 text-purple-800 flex items-center justify-center font-bold">
+                {user.displayName
+                  ? user.displayName.charAt(0).toUpperCase()
+                  : user.email?.charAt(0).toUpperCase() || "U"}
+              </div>
+            )}
+            <span className="text-sm text-yellow-100 hidden md:block">
+              {user.displayName || user.email?.split('@')[0]}
+            </span>
+          </div>
           <button
             onClick={handleLogout}
-            className="bg-red-500 px-3 py-1 rounded hover:bg-red-600"
+            className="bg-red-500 hover:bg-red-600 px-4 py-2 rounded-lg transition-all shadow-md hover:shadow-lg flex items-center gap-2"
           >
-            Logout
+            <span>🚪</span>
+            <span className="font-medium">Logout</span>
           </button>
         </div>
       )}

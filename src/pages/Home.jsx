@@ -1,157 +1,392 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Star, Calendar, Clock, Play } from "lucide-react";
+import { collection, getDocs } from "firebase/firestore";
+import { db } from "../config/Firebase";
 
 export default function Home() {
   const [movies, setMovies] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [isAutoPlaying, setIsAutoPlaying] = useState(true);
 
-  // ✅ Fetch movies from TMDb Discover API
+  // Fetch movies from Firestore
   useEffect(() => {
-    fetch("https://api.themoviedb.org/3/discover/movie?api_key=80d491707d8cf7b38aa19c7ccab0952f")
-      .then((res) => res.json())
-      .then((data) => {
-        console.log("TMDb results:", data.results);
-        setMovies(data.results || []);
-      })
-      .catch((err) => console.error("Error fetching movies:", err));
+    const fetchMovies = async () => {
+      try {
+        const querySnapshot = await getDocs(collection(db, "movies"));
+        const movieList = querySnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        setMovies(movieList);
+      } catch (err) {
+        console.error("Error fetching movies from Firestore:", err);
+      }
+    };
+    fetchMovies();
   }, []);
 
-  // ✅ Auto-slide every 5 seconds
+  // Auto-slide every 5 seconds
   useEffect(() => {
-    if (movies.length === 0) return;
+    if (!isAutoPlaying || movies.length === 0) return;
     const interval = setInterval(() => {
-      setCurrentIndex((prev) => (prev === 4 ? 0 : prev + 1)); // cycle through first 5 movies
+      setCurrentIndex((prev) => (prev === Math.min(4, movies.length - 1) ? 0 : prev + 1));
     }, 5000);
     return () => clearInterval(interval);
-  }, [movies]);
+  }, [isAutoPlaying, movies.length]);
 
   const nextSlide = () => {
-    setCurrentIndex((prev) => (prev === 4 ? 0 : prev + 1));
+    setIsAutoPlaying(false);
+    setCurrentIndex((prev) => (prev === Math.min(4, movies.length - 1) ? 0 : prev + 1));
   };
+
   const prevSlide = () => {
-    setCurrentIndex((prev) => (prev === 0 ? 4 : prev - 1));
+    setIsAutoPlaying(false);
+    setCurrentIndex((prev) => (prev === 0 ? Math.min(4, movies.length - 1) : prev - 1));
+  };
+
+  // Helper function to get image URL
+  const getImageUrl = (path) => {
+    if (!path) return "https://via.placeholder.com/1280x720?text=No+Image";
+    if (path.startsWith("http") || path.startsWith("https")) return path;
+    return `https://image.tmdb.org/t/p/original${path}`;
   };
 
   if (movies.length === 0) {
     return (
-      <div className="h-screen bg-black flex items-center justify-center text-yellow-500 font-bold">
-        Loading Movies...
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-800 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-yellow-400 mx-auto mb-4"></div>
+          <p className="text-white text-xl">Loading Movies...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex flex-col text-white">
-      {/* ✅ Hero Sliding Banner */}
-      <section className="h-[70vh] w-full relative overflow-hidden group">
-        {/* Prev Button */}
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-800">
+      {/* Hero Section with Slider */}
+      <section className="relative h-[85vh] w-full overflow-hidden">
+        {/* Dark Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/50 to-transparent z-10" />
+        
+        {/* Background Images with Transitions */}
+        {movies.slice(0, 5).map((movie, index) => (
+          <div
+            key={movie.id}
+            className={`absolute inset-0 transition-all duration-1000 ease-in-out ${
+              index === currentIndex ? "opacity-100 scale-100" : "opacity-0 scale-105"
+            }`}
+            style={{
+              backgroundImage: `url(${getImageUrl(movie.backdrop_path || movie.poster_path)})`,
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+            }}
+          />
+        ))}
+
+        {/* Navigation Arrows */}
         <button
           onClick={prevSlide}
-          className="absolute left-6 top-1/2 -translate-y-1/2 z-30 bg-black/40 p-3 rounded-full border border-white/10 text-white hover:text-yellow-500 transition-all opacity-0 group-hover:opacity-100"
+          className="absolute left-4 top-1/2 -translate-y-1/2 z-30 bg-yellow-400/20 hover:bg-yellow-400/40 backdrop-blur-sm p-4 rounded-full transition-all duration-300 hover:scale-110 group"
         >
-          <ChevronLeft size={40} />
+          <ChevronLeft size={32} className="text-white group-hover:text-yellow-400" />
+        </button>
+        <button
+          onClick={nextSlide}
+          className="absolute right-4 top-1/2 -translate-y-1/2 z-30 bg-yellow-400/20 hover:bg-yellow-400/40 backdrop-blur-sm p-4 rounded-full transition-all duration-300 hover:scale-110 group"
+        >
+          <ChevronRight size={32} className="text-white group-hover:text-yellow-400" />
         </button>
 
-        {movies.slice(0, 5).map((movie, index) => {
-          // ✅ Ensure we always have a valid image
-          const imagePath = movie.backdrop_path || movie.poster_path;
-          const bgImage = imagePath
-            ? `https://image.tmdb.org/t/p/original${imagePath}`
-            : "https://image.tmdb.org/t/p/w1280/8YFL5QQVPy3AgrEQxNYVSgiPEbe.jpg"; // fallback
+        {/* Slide Content */}
+        {movies.slice(0, 5).map((movie, index) => (
+          <div
+            key={movie.id}
+            className={`absolute inset-0 z-20 flex items-center justify-center transition-all duration-1000 ${
+              index === currentIndex ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10 pointer-events-none"
+            }`}
+          >
+            <div className="max-w-5xl mx-auto px-4 w-full">
+              <div className="flex flex-col lg:flex-row items-center gap-8">
+                {/* Movie Poster */}
+                <div className="hidden lg:block transform transition-all duration-700 hover:scale-105">
+                  <div className="relative">
+                    <div className="absolute -inset-2 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-2xl blur opacity-30" />
+                    <img
+                      src={getImageUrl(movie.poster_path)}
+                      alt={movie.title}
+                      className="relative w-72 rounded-xl shadow-2xl"
+                    />
+                  </div>
+                </div>
 
-          return (
-            <div
-              key={movie.id}
-              className={`absolute inset-0 w-full h-full transition-opacity duration-1000 ease-in-out ${
-                index === currentIndex ? "opacity-100 z-10" : "opacity-0 z-0"
-              }`}
-              style={{
-                backgroundImage: `linear-gradient(to top, rgba(0,0,0,0.7), transparent), url(${bgImage})`,
-                backgroundSize: "cover",
-                backgroundPosition: "center",
-              }}
-            >
-              <div className="flex flex-col items-center justify-center text-center h-full px-6 relative z-10">
-                <h1 className="text-5xl font-extrabold mb-4">{movie.title}</h1>
-                <p className="text-lg mb-8 max-w-2xl">{movie.overview}</p>
-                <div className="flex gap-6 justify-center">
-                  <Link
-                    to="/movies"
-                    className="bg-yellow-400 text-black px-8 py-3 rounded-lg font-semibold hover:bg-yellow-500 shadow-lg"
-                  >
-                    Book Now
-                  </Link>
-                  <Link
-                    to="/locations"
-                    className="bg-green-400 text-black px-8 py-3 rounded-lg font-semibold hover:bg-green-500 shadow-lg"
-                  >
-                    See Locations
-                  </Link>
+                {/* Movie Info */}
+                <div className="text-center lg:text-left flex-1">
+                  {/* Badge */}
+                  <div className="inline-flex items-center gap-2 bg-yellow-400 text-black px-4 py-1.5 rounded-full font-semibold text-sm mb-4">
+                    <Star size={14} fill="black" />
+                    {movie.rating} Rating
+                  </div>
+
+                  <h1 className="text-4xl lg:text-6xl font-extrabold text-white mb-4 leading-tight">
+                    {movie.title}
+                  </h1>
+
+                  <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4 text-gray-300 mb-6">
+                    <span className="flex items-center gap-1">
+                      <Clock size={16} className="text-yellow-400" />
+                      {movie.duration} min
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <Calendar size={16} className="text-yellow-400" />
+                      {movie.genre?.join(", ")}
+                    </span>
+                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                      movie.status === "coming_soon" 
+                        ? "bg-orange-500/20 text-orange-400 border border-orange-500/30" 
+                        : "bg-green-500/20 text-green-400 border border-green-500/30"
+                    }`}>
+                      {movie.status === "coming_soon" ? "Coming Soon" : "Now Showing"}
+                    </span>
+                  </div>
+
+                  <p className="text-gray-300 text-lg mb-8 max-w-2xl line-clamp-3">
+                    {movie.synopsis}
+                  </p>
+
+                  <div className="flex flex-wrap gap-4 justify-center lg:justify-start">
+                    <Link
+                      to="/movies"
+                      className="group flex items-center gap-2 bg-gradient-to-r from-yellow-400 to-orange-500 text-black px-8 py-3.5 rounded-xl font-bold text-lg hover:from-yellow-500 hover:to-orange-600 transition-all duration-300 shadow-lg hover:shadow-yellow-400/25 hover:scale-105"
+                    >
+                      <Play size={20} className="fill-black" />
+                      Book Now
+                    </Link>
+                    <Link
+                      to={`/movies/${movie.id}`}
+                      className="flex items-center gap-2 bg-white/10 backdrop-blur-sm text-white px-8 py-3.5 rounded-xl font-bold text-lg hover:bg-white/20 transition-all duration-300 border border-white/20 hover:scale-105"
+                    >
+                      View Details
+                    </Link>
+                  </div>
                 </div>
               </div>
             </div>
-          );
-        })}
-
-        {/* Next Button */}
-        <button
-          onClick={nextSlide}
-          className="absolute right-6 top-1/2 -translate-y-1/2 z-30 bg-black/40 p-3 rounded-full border border-white/10 text-white hover:text-yellow-500 transition-all opacity-0 group-hover:opacity-100"
-        >
-          <ChevronRight size={40} />
-        </button>
+          </div>
+        ))}
 
         {/* Dots Indicator */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 flex gap-2">
-          {[...Array(5)].map((_, i) => (
-            <div
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-30 flex gap-3">
+          {[...Array(Math.min(5, movies.length))].map((_, i) => (
+            <button
               key={i}
-              className={`h-1.5 transition-all duration-500 ${
-                i === currentIndex ? "w-12 bg-yellow-400" : "w-4 bg-white/30"
+              onClick={() => {
+                setIsAutoPlaying(false);
+                setCurrentIndex(i);
+              }}
+              className={`h-2 rounded-full transition-all duration-300 ${
+                i === currentIndex 
+                  ? "w-12 bg-yellow-400" 
+                  : "w-2 bg-white/40 hover:bg-white/60"
               }`}
             />
           ))}
         </div>
       </section>
 
-      {/* ✅ Movies List Section */}
-      <div className="bg-white text-black rounded-t-3xl p-8">
-        <h2 className="text-2xl font-bold mb-6 text-center">Popular Movies</h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-          {movies.map((movie) => (
-            <div
-              key={movie.id}
-              className="bg-gray-100 rounded-lg shadow-md overflow-hidden flex flex-col"
+      {/* Featured Movies Section */}
+      <section className="py-20 px-4">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex items-center justify-between mb-10">
+            <div>
+              <h2 className="text-3xl lg:text-4xl font-bold text-white mb-2">
+                Featured Movies
+              </h2>
+              <div className="h-1 w-20 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full" />
+            </div>
+            <Link
+              to="/movies"
+              className="text-yellow-400 hover:text-yellow-300 font-medium flex items-center gap-1 transition-colors"
             >
-              <div className="w-full h-80 bg-black flex items-center justify-center">
-                <img
-                  src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
-                  alt={movie.title}
-                  className="max-h-full object-contain"
-                />
-              </div>
-              <div className="p-4 flex-1 flex flex-col justify-between">
-                <div>
-                  <h3 className="text-lg font-bold text-center">{movie.title}</h3>
-                  <p className="text-sm text-gray-700 text-center">
-                    Rating: {movie.vote_average}
+              View All
+              <ChevronRight size={20} />
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+            {movies.slice(0, 5).map((movie, index) => (
+              <Link
+                key={movie.id}
+                to={`/movies/${movie.id}`}
+                className="group relative overflow-hidden rounded-xl bg-gray-800 transform transition-all duration-500 hover:scale-105 hover:shadow-2xl hover:shadow-purple-500/20"
+                style={{ animationDelay: `${index * 100}ms` }}
+              >
+                {/* Poster */}
+                <div className="aspect-[2/3] relative overflow-hidden">
+                  <img
+                    src={getImageUrl(movie.poster_path)}
+                    alt={movie.title}
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                  />
+                  
+                  {/* Overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  
+                  {/* Play Button */}
+                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300">
+                    <div className="w-16 h-16 rounded-full bg-yellow-400 flex items-center justify-center transform scale-0 group-hover:scale-100 transition-transform duration-300">
+                      <Play size={28} fill="black" className="text-black ml-1" />
+                    </div>
+                  </div>
+
+                  {/* Rating Badge */}
+                  <div className="absolute top-3 right-3 bg-yellow-400 text-black px-2 py-1 rounded-lg font-bold text-sm flex items-center gap-1">
+                    <Star size={12} fill="black" />
+                    {movie.rating}
+                  </div>
+
+                  {/* Status Badge */}
+                  {movie.status === "coming_soon" && (
+                    <div className="absolute top-3 left-3 bg-orange-500 text-white px-2 py-1 rounded-lg font-medium text-xs">
+                      Coming Soon
+                    </div>
+                  )}
+                </div>
+
+                {/* Info */}
+                <div className="p-4 bg-gradient-to-b from-gray-800 to-gray-900">
+                  <h3 className="font-bold text-white text-center truncate group-hover:text-yellow-400 transition-colors">
+                    {movie.title}
+                  </h3>
+                  <p className="text-gray-400 text-sm text-center mt-1">
+                    {movie.genre?.[0]}
                   </p>
                 </div>
-                <Link
-                  to={`/movies/${movie.id}`}
-                  className="mt-3 inline-block bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 w-full text-center"
-                >
-                  View Details
-                </Link>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Now Showing & Coming Soon Sections */}
+      <section className="py-20 px-4 bg-gradient-to-b from-transparent via-purple-900/20 to-transparent">
+        <div className="max-w-7xl mx-auto">
+          {/* Now Showing */}
+          <div className="mb-16">
+            <div className="flex items-center gap-3 mb-8">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center">
+                <Play size={24} fill="black" className="text-black" />
+              </div>
+              <div>
+                <h2 className="text-3xl font-bold text-white">Now Showing</h2>
+                <p className="text-gray-400">Book your tickets now</p>
               </div>
             </div>
-          ))}
-        </div>
-      </div>
 
-      <footer className="mt-12 text-sm text-gray-200 text-center">
-        © 2026 Movie Booking
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {movies.filter(m => m.status === "now_showing").slice(0, 4).map((movie, index) => (
+                <Link
+                  key={movie.id}
+                  to={`/movies/${movie.id}`}
+                  className="group bg-white/5 backdrop-blur-sm rounded-2xl overflow-hidden border border-white/10 hover:border-yellow-400/50 transition-all duration-500 hover:shadow-2xl hover:shadow-yellow-400/10"
+                >
+                  <div className="relative aspect-[3/4] overflow-hidden">
+                    <img
+                      src={getImageUrl(movie.poster_path)}
+                      alt={movie.title}
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    <div className="absolute bottom-0 left-0 right-0 p-4 transform translate-y-full group-hover:translate-y-0 transition-transform duration-300">
+                      <button className="w-full bg-yellow-400 text-black py-2 rounded-lg font-bold hover:bg-yellow-500 transition-colors">
+                        Book Tickets
+                      </button>
+                    </div>
+                  </div>
+                  <div className="p-4">
+                    <h3 className="font-bold text-white text-lg truncate group-hover:text-yellow-400 transition-colors">
+                      {movie.title}
+                    </h3>
+                    <div className="flex items-center justify-between mt-2">
+                      <span className="text-gray-400 text-sm">{movie.genre?.[0]}</span>
+                      <span className="flex items-center gap-1 text-yellow-400 text-sm font-medium">
+                        <Star size={14} fill="yellow-400" />
+                        {movie.rating}
+                      </span>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+
+          {/* Coming Soon */}
+          <div>
+            <div className="flex items-center gap-3 mb-8">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-400 to-red-500 flex items-center justify-center">
+                <Calendar size={24} className="text-white" />
+              </div>
+              <div>
+                <h2 className="text-3xl font-bold text-white">Coming Soon</h2>
+                <p className="text-gray-400">Get ready for these amazing movies</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {movies.filter(m => m.status === "coming_soon").slice(0, 4).map((movie) => (
+                <Link
+                  key={movie.id}
+                  to={`/movies/${movie.id}`}
+                  className="group bg-white/5 backdrop-blur-sm rounded-2xl overflow-hidden border border-white/10 hover:border-orange-400/50 transition-all duration-500"
+                >
+                  <div className="relative aspect-[3/4] overflow-hidden">
+                    <img
+                      src={getImageUrl(movie.poster_path)}
+                      alt={movie.title}
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
+                    <div className="absolute top-3 right-3 bg-orange-500 text-white px-3 py-1 rounded-full text-sm font-medium">
+                      {movie.duration} min
+                    </div>
+                  </div>
+                  <div className="p-4">
+                    <h3 className="font-bold text-white text-lg truncate group-hover:text-orange-400 transition-colors">
+                      {movie.title}
+                    </h3>
+                    <div className="flex items-center justify-between mt-2">
+                      <span className="text-gray-400 text-sm">{movie.genre?.[0]}</span>
+                      <span className="flex items-center gap-1 text-orange-400 text-sm font-medium">
+                        <Star size={14} fill="orange-400" />
+                        {movie.rating}
+                      </span>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="py-12 px-4 border-t border-white/10">
+        <div className="max-w-7xl mx-auto text-center">
+          <h3 className="text-2xl font-bold text-white mb-4">
+            <span className="text-yellow-400">Movie</span> Booking
+          </h3>
+          <p className="text-gray-400 mb-6">
+            Your ultimate destination for movie bookings
+          </p>
+          <div className="flex justify-center gap-6 mb-8">
+            <Link to="/movies" className="text-gray-400 hover:text-yellow-400 transition-colors">Movies</Link>
+            <Link to="/my-bookings" className="text-gray-400 hover:text-yellow-400 transition-colors">My Bookings</Link>
+          </div>
+          <p className="text-gray-500 text-sm">
+            © 2026 Movie Booking. All rights reserved.
+          </p>
+        </div>
       </footer>
     </div>
   );

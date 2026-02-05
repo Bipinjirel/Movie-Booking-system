@@ -1,5 +1,6 @@
-import { createContext, useContext, useState, useEffect, createElement } from "react";
-import { auth } from "../config/Firebase";   // ✅ now this works
+// AuthContext.jsx
+import { createContext, useContext, useState, useEffect } from "react";
+import { auth } from "../config/Firebase";
 import { onAuthStateChanged } from "firebase/auth";
 
 const AuthContext = createContext();
@@ -18,7 +19,11 @@ export const AuthProvider = ({ children }) => {
 
   const value = { user, loading };
 
-  return createElement(AuthContext.Provider, { value }, children);
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+    </AuthContext.Provider>
+  );
 };
 
 export const useAuthContext = () => useContext(AuthContext);

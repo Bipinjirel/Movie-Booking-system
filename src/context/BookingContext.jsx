@@ -1,11 +1,16 @@
-import { createContext, useContext, useState, createElement } from "react";
+// BookingContext.jsx
+import { createContext, useContext, useState } from "react";
 
 const BookingContext = createContext();
 
 export const BookingProvider = ({ children }) => {
   const [selectedMovie, setSelectedMovie] = useState(null);
   const [selectedSeats, setSelectedSeats] = useState([]);
-  const [bookingInfo, setBookingInfo] = useState(null);
+  const [bookingInfo, setBookingInfo] = useState({
+    theatre: "",
+    showTime: "",
+    price: 0,
+  });
 
   const value = {
     selectedMovie,
@@ -16,8 +21,12 @@ export const BookingProvider = ({ children }) => {
     setBookingInfo,
   };
 
-  // Use React.createElement instead of JSX
-  return createElement(BookingContext.Provider, { value }, children);
+  return (
+    <BookingContext.Provider value={value}>
+      {children}
+    </BookingContext.Provider>
+  );
 };
 
+// Custom hook for easy access
 export const useBookingContext = () => useContext(BookingContext);

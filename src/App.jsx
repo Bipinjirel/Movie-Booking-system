@@ -1,8 +1,8 @@
 import { useEffect } from "react";
 import { Routes, Route, useLocation, Link } from "react-router-dom";
-import { AuthProvider } from "./context/AuthContext.js";
-import { BookingProvider } from "./context/BookingContext.js";
-import { ThemeProvider } from "./context/ThemeControl.js";
+import { AuthProvider } from "./context/AuthContext.jsx";
+import { BookingProvider } from "./context/BookingContext.jsx";
+import { ThemeProvider } from "./context/ThemeControl.jsx";
 
 import Navbar from "./pages/Navbar.jsx";
 import Footer from "./pages/Footer.jsx";
@@ -24,53 +24,28 @@ import { seedFirestore } from "./seed/seedData.js";
 function ChoicePage() {
   return (
     <div
-      style={{
-        minHeight: "100vh",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        background: "linear-gradient(135deg, #6a0dad, #ff6600)",
-      }}
+      className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-900 via-purple-700 to-orange-500"
     >
-      <div
-        style={{
-          backgroundColor: "white",
-          padding: "2rem",
-          borderRadius: "12px",
-          boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
-          textAlign: "center",
-        }}
-      >
-        <h2 style={{ color: "#6a0dad", marginBottom: "1.5rem" }}>
-          Welcome to Movie Booking 🎬
+      <div className="bg-white/95 backdrop-blur-sm p-10 rounded-2xl shadow-2xl text-center max-w-md">
+        <div className="mb-6">
+          <span className="text-6xl">🎬</span>
+        </div>
+        <h2 className="text-3xl font-bold text-gray-800 mb-2">
+          Welcome to Movie Booking
         </h2>
-        <p style={{ marginBottom: "1rem" }}>Choose an option to continue:</p>
-        <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+        <p className="text-gray-500 mb-8">Choose an option to continue</p>
+        <div className="space-y-4">
           <Link
             to="/register"
-            style={{
-              backgroundColor: "#6a0dad",
-              color: "white",
-              padding: "0.8rem",
-              borderRadius: "6px",
-              textDecoration: "none",
-              fontWeight: "bold",
-            }}
+            className="block w-full bg-gradient-to-r from-purple-600 to-orange-500 text-white py-3 rounded-lg font-semibold hover:from-purple-700 hover:to-orange-600 transition-all shadow-md"
           >
-            Register
+            Create Account
           </Link>
           <Link
             to="/login"
-            style={{
-              backgroundColor: "#ff6600",
-              color: "white",
-              padding: "0.8rem",
-              borderRadius: "6px",
-              textDecoration: "none",
-              fontWeight: "bold",
-            }}
+            className="block w-full bg-white border-2 border-purple-600 text-purple-600 py-3 rounded-lg font-semibold hover:bg-purple-50 transition-all"
           >
-            Login
+            Sign In
           </Link>
         </div>
       </div>
