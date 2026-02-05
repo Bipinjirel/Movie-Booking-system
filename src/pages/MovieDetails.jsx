@@ -33,26 +33,29 @@ export default function MovieDetails() {
     navigate("/confirmation");
   };
 
-  if (!movie) return <p>Loading...</p>;
+  if (!movie) return <p className="p-8">Loading...</p>;
+
+  const posterUrl = movie.poster_path
+    ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
+    : "https://via.placeholder.com/500x750?text=No+Image";
 
   return (
     <div className="p-8 bg-gray-100 min-h-screen">
       <h2 className="text-3xl font-bold mb-6">{movie.title}</h2>
 
-      {/* Flexbox layout: poster left, seat map right */}
       <div className="flex flex-col md:flex-row gap-8">
         {/* Poster + details */}
         <div className="md:w-1/2">
           <div className="shadow-2xl rounded-lg overflow-hidden mb-6">
             <img
-              src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
+              src={posterUrl}
               alt={movie.title}
               className="w-full h-auto object-contain"
             />
           </div>
           <p className="mb-6">{movie.overview}</p>
-          <p className="text-sm text-gray-600 mb-2">Rating: {movie.vote_average}</p>
-          <p className="text-sm text-gray-600 mb-2">Release Date: {movie.release_date}</p>
+          <p className="text-sm text-gray-600 mb-2">⭐ Rating: {movie.vote_average}</p>
+          <p className="text-sm text-gray-600 mb-2">📅 Release Date: {movie.release_date}</p>
 
           {movie.videos?.results?.length > 0 && (
             <iframe
@@ -68,7 +71,7 @@ export default function MovieDetails() {
           )}
         </div>
 
-        {/* Seat selection beside poster */}
+        {/* Seat selection */}
         <div className="md:w-1/2">
           <h3 className="text-xl font-semibold mb-4">Select Your Seats</h3>
           <SeatMap selectedSeats={selectedSeats} setSelectedSeats={setSelectedSeats} />

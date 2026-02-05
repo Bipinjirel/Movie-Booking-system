@@ -17,8 +17,13 @@ export default function MovieCard({ movie }) {
         <p className="text-sm text-gray-600 text-center">
           Rating: {movie.vote_average}
         </p>
+        <Link
+          to={`/movies/${movie.id}`}
+          className="mt-3 inline-block bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 w-full text-center"
+        >
+          View Details
+        </Link>
       </div>
     </div>
   );
 }
-

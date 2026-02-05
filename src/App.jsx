@@ -82,7 +82,6 @@ export default function App() {
   const location = useLocation();
   const hideNavbar = ["/", "/login", "/register"].includes(location.pathname);
 
-  // ✅ Run seeding once when App mounts
   useEffect(() => {
     seedFirestore();
   }, []);
