@@ -50,7 +50,7 @@ export default function Movies() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-800 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-blue-950 via-blue-900 to-indigo-950 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-yellow-400 mx-auto mb-4"></div>
           <p className="text-white text-xl">Loading movies...</p>
@@ -60,7 +60,7 @@ export default function Movies() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-800">
+    <div className="min-h-screen bg-gradient-to-br from-blue-950 via-blue-900 to-indigo-950">
       {/* Header */}
       <div className="relative py-16 px-4">
         <div className="absolute inset-0 bg-gradient-to-r from-yellow-400/10 to-orange-500/10" />
@@ -191,7 +191,7 @@ export default function Movies() {
 
       {/* Coming Soon Section */}
       {comingSoonMovies.length > 0 && (
-        <section className="py-12 px-4 bg-gradient-to-b from-transparent via-purple-900/20 to-transparent">
+        <section className="py-12 px-4 bg-gradient-to-b from-transparent via-blue-900/20 to-transparent">
           <div className="max-w-7xl mx-auto">
             <div className="flex items-center gap-3 mb-8">
               <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-400 to-red-500 flex items-center justify-center">

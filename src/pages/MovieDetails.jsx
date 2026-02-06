@@ -1,10 +1,11 @@
 // MovieDetails.jsx
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { db } from "../config/Firebase";
 import SeatMap from "../components/SeatMap";
 import { useBookingContext } from "../context/BookingContext";
+import { useAuthContext } from "../context/AuthContext";
 import { Play, Star, Clock, Calendar, ChevronLeft } from "lucide-react";
 
 export default function MovieDetails() {
@@ -12,6 +13,7 @@ export default function MovieDetails() {
   const [movie, setMovie] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showTrailer, setShowTrailer] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const { 
     selectedSeats, 
     setSelectedSeats, 
@@ -19,11 +21,16 @@ export default function MovieDetails() {
     bookingInfo,
     setBookingInfo 
   } = useBookingContext();
+  const { user } = useAuthContext();
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchMovie = async () => {
       try {
+        // Clear previous booking selections when loading a new movie
+        setSelectedSeats([]);
+        setBookingInfo(prev => ({ theatre: "", showTime: "", price: 0 }));
+        
         const docRef = doc(db, "movies", id);
         const docSnap = await getDoc(docRef);
         
@@ -44,9 +51,14 @@ export default function MovieDetails() {
     };
     
     fetchMovie();
-  }, [id, navigate, setSelectedMovie]);
+  }, [id, navigate, setSelectedMovie, setSelectedSeats, setBookingInfo]);
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
+    if (!user) {
+      alert("Please login to book tickets!");
+      navigate("/login");
+      return;
+    }
     if (selectedSeats.length === 0) {
       alert("Please select at least one seat!");
       return;
@@ -55,8 +67,56 @@ export default function MovieDetails() {
       alert("Please select a theatre and show time!");
       return;
     }
-    setBookingInfo(prev => ({ ...prev, price: selectedSeats.length * 10 }));
-    navigate("/confirmation");
+    
+    // Calculate total based on seat type (VIP = Rs.350, Regular = Rs.200)
+    const total = selectedSeats.reduce((sum, seat) => {
+      const row = seat.charAt(0);
+      const isVIP = row === "A" || row === "B";
+      return sum + (isVIP ? 350 : 200);
+    }, 0);
+    
+    setIsSaving(true);
+    console.log("Starting Firestore save...");
+    
+    try {
+      // Save booking to Firestore
+      const bookingData = {
+        userId: user.uid,
+        userEmail: user.email,
+        movieId: id,
+        movieTitle: movie.title,
+        posterPath: movie.poster_path,
+        theatre: bookingInfo.theatre,
+        showTime: bookingInfo.showTime,
+        seats: selectedSeats,
+        totalPrice: total,
+        status: "confirmed",
+        createdAt: serverTimestamp()
+      };
+      
+      console.log("Calling addDoc...");
+      const docRef = await addDoc(collection(db, "bookings"), bookingData);
+      console.log("Booking saved with ID: ", docRef.id);
+      
+      // Navigate to confirmation with booking data passed via state
+      navigate("/confirmation", {
+        state: {
+          bookingId: docRef.id,
+          movie: movie,
+          theatre: bookingInfo.theatre,
+          showTime: bookingInfo.showTime,
+          seats: selectedSeats,
+          total: total,
+          userEmail: user.email
+        }
+      });
+    } catch (error) {
+      console.error("Error saving booking: ", error);
+      alert("Failed to save booking. Please try again.");
+    } finally {
+      console.log("Finally block - clearing isSaving");
+      setIsSaving(false);
+    }
   };
 
   // Get image URL - check if it's a full URL (Firebase Storage or external) or TMDB path
@@ -216,21 +276,28 @@ export default function MovieDetails() {
               setTheatre={(theatre) => setBookingInfo(prev => ({ ...prev, theatre }))}
               showTime={bookingInfo.showTime}
               setShowTime={(showTime) => setBookingInfo(prev => ({ ...prev, showTime }))}
+              movieId={id}
             />
 
             <button
               onClick={handleConfirm}
-              disabled={selectedSeats.length === 0}
+              disabled={selectedSeats.length === 0 || !bookingInfo.theatre || !bookingInfo.showTime || isSaving}
               className={`mt-6 w-full py-4 rounded-xl font-bold text-lg transition-all flex items-center justify-center gap-2 ${
-                selectedSeats.length > 0
+                selectedSeats.length > 0 && bookingInfo.theatre && bookingInfo.showTime && !isSaving
                   ? "bg-gradient-to-r from-yellow-400 to-orange-500 text-black hover:from-yellow-500 hover:to-orange-600 shadow-lg hover:shadow-yellow-400/25 cursor-pointer"
                   : "bg-gray-500 text-gray-300 cursor-not-allowed"
               }`}
             >
-              {selectedSeats.length > 0 
-                ? `Confirm Booking - $${selectedSeats.length * 10}`
-                : "Select Seats to Continue"
-              }
+              {isSaving ? (
+                <>
+                  <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-black"></div>
+                  <span>Saving Booking...</span>
+                </>
+              ) : selectedSeats.length === 0 || !bookingInfo.theatre || !bookingInfo.showTime ? (
+                "Select Theatre, Time & Seats"
+              ) : (
+                `Confirm Booking - Rs.${selectedSeats.reduce((sum, seat) => { const row = seat.charAt(0); const isVIP = row === "A" || row === "B"; return sum + (isVIP ? 350 : 200); }, 0)}`
+              )}
             </button>
           </div>
         </div>
