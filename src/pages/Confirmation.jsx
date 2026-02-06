@@ -2,40 +2,40 @@ import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuthContext } from "../context/AuthContext";
 import { useBookingContext } from "../context/BookingContext";
-import { CheckCircle, Ticket, Calendar, MapPin, Clock, ChevronRight } from "lucide-react";
+import { CheckCircle, Ticket, Calendar, MapPin, Clock, ChevronRight, CalendarClock } from "lucide-react";
 
 export default function Confirmation() {
   const location = useLocation();
   const navigate = useNavigate();
   const { user } = useAuthContext();
   const { setSelectedMovie, setSelectedSeats, setBookingInfo } = useBookingContext();
+  const [bookingData, setBookingData] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [isNavigating, setIsNavigating] = useState(false);
 
-  // Get booking data from navigate state
-  const bookingData = location.state;
-  const [showSuccess, setShowSuccess] = useState(false);
-
   useEffect(() => {
-    // Check if we have valid booking data from navigate state
-    if (!bookingData || !bookingData.bookingId) {
-      // If no booking data, redirect to movies
+    // Get booking data from navigate state
+    const data = location.state;
+    
+    if (!data || !data.bookingId) {
+      // No booking data, redirect to movies
       navigate("/movies");
       return;
     }
 
-    // Show success after a brief delay for animation
-    setTimeout(() => {
-      setShowSuccess(true);
-    }, 100);
-  }, [bookingData, navigate]);
+    // Set booking data
+    setBookingData(data);
+    setLoading(false);
+  }, [location, navigate]);
 
-  // Calculate total price
-  const calculateTotal = () => {
-    return bookingData?.total || 0;
+  const formatBookingDate = () => {
+    if (!bookingData?.bookingDate) return new Date().toLocaleString();
+    return new Date(bookingData.bookingDate).toLocaleString();
   };
 
   const handleViewBookings = () => {
     setIsNavigating(true);
+    // Clear booking context
     setSelectedMovie(null);
     setSelectedSeats([]);
     setBookingInfo({ theatre: "", showTime: "", price: 0 });
@@ -44,13 +44,14 @@ export default function Confirmation() {
 
   const handleBrowseMovies = () => {
     setIsNavigating(true);
+    // Clear booking context
     setSelectedMovie(null);
     setSelectedSeats([]);
     setBookingInfo({ theatre: "", showTime: "", price: 0 });
     navigate("/movies");
   };
 
-  if (!showSuccess || !bookingData) {
+  if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center">
         <div className="text-center">
@@ -61,7 +62,7 @@ export default function Confirmation() {
     );
   }
 
-  const movie = bookingData.movie;
+  const movie = bookingData?.movie;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center p-4">
@@ -108,12 +109,21 @@ export default function Confirmation() {
                 <span>Selected Seats</span>
               </div>
               <div className="flex gap-1 flex-wrap justify-end">
-                {bookingData?.seats?.map((seat, index) => (
+                {bookingData?.seats?.map((seat) => (
                   <span key={seat} className="inline-flex items-center justify-center w-8 h-8 rounded bg-yellow-400/20 text-yellow-400 text-sm font-medium">
                     {seat}
                   </span>
                 ))}
               </div>
+            </div>
+
+            {/* Booking Date */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-gray-400">
+                <CalendarClock size={18} />
+                <span>Booked On</span>
+              </div>
+              <span className="text-white font-medium">{formatBookingDate()}</span>
             </div>
 
             {/* Divider */}
@@ -122,7 +132,7 @@ export default function Confirmation() {
             {/* Price & Status */}
             <div className="flex items-center justify-between">
               <span className="text-gray-400">Total Paid</span>
-              <span className="text-2xl font-bold text-green-400">Rs.{calculateTotal()}</span>
+              <span className="text-2xl font-bold text-green-400">Rs.{bookingData?.total || 0}</span>
             </div>
             
             <div className="flex items-center justify-between">
@@ -135,9 +145,9 @@ export default function Confirmation() {
 
             {/* Booking Reference */}
             <div className="bg-black/30 rounded-xl p-4 text-center mt-4">
-              <p className="text-gray-400 text-xs uppercase tracking-wider mb-1">Booking Reference</p>
+              <p className="text-gray-400 text-xs uppercase tracking-wider mb-1">Confirmation ID</p>
               <p className="text-yellow-400 font-mono font-bold text-lg">
-                {bookingData?.bookingId?.slice(-8).toUpperCase() || "N/A"}
+                {bookingData?.bookingRef || bookingData?.bookingId?.slice(-8).toUpperCase() || "N/A"}
               </p>
             </div>
           </div>
